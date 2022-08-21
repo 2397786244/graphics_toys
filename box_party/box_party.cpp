@@ -81,7 +81,7 @@ int main(){
     glfwInitHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
     //GLFW初始化。
 
-    GLFWwindow * window = glfwCreateWindow(800,600,"GraphicsWindow", nullptr, nullptr);
+    GLFWwindow * window = glfwCreateWindow(1280,720,"GraphicsWindow", nullptr, nullptr);
     glfwMakeContextCurrent(window);  //设置窗口的上下文为当前线程的上下文。
 
     //glad初始化,加载opengl函数指针(管理opengl指针)
@@ -91,7 +91,7 @@ int main(){
     }
 
     //告诉opengl视口大小。
-    glViewport(0,0,800,600);
+    glViewport(0,0,1280,720);
 
     //视口调整函数 注册。
     glfwSetFramebufferSizeCallback(window,framebuffer_size_callback);
@@ -101,7 +101,7 @@ int main(){
     //纹理图像读取
     int width,height,channels;
     stbi_set_flip_vertically_on_load(1);  //stb读取图像时反转，让原点位置在左下角。
-    unsigned char *data= stbi_load("../wall.jpg",&width,&height,&channels,0);
+    unsigned char *data= stbi_load("../container2.jpg",&width,&height,&channels,0);
 
     //创建纹理
     unsigned int texID;  //纹理id
@@ -134,7 +134,7 @@ int main(){
     stbi_image_free(data);
 
     //读取墙面涂鸦纹理
-    unsigned char * data2 = stbi_load("../pic.jpg",&width,&height,&channels,0);
+    unsigned char * data2 = stbi_load("../container2_specular.jpg",&width,&height,&channels,0);
     glGenTextures(1,&wall_surf_tex);
     glBindTexture(GL_TEXTURE_2D,wall_surf_tex);
     //设置纹理环绕方式、纹理过滤方式
@@ -192,35 +192,92 @@ FragColor = vec4(0.5,0.2,0.3,1.0);
      */
     // 需要通过uniform变量传入的参数：
     // Texture1/2  纹理。不需要传入
-    //ka ks 系数。 float类型
+    //ka 系数。 float类型
     //LightPos 光源位置  viewPos LightColor 光源颜色 均为vec3类型
     //specularParam  反光强度。即p。 float类型
     const char * fragmentShaderSource = "#version 460 core\n"
+                                        "#define LIGHT_POS 4\n"
                                         "out vec4 FragColor;\n"
-                                        "in vec2 TexCoord;"
-                                        "in vec3 Normal;"
-                                        "in vec3 FragPos;\n"
-                                        "uniform sampler2D Texture1;\n"
-                                        "uniform sampler2D Texture2;\n"
-                                        "uniform float ka;\n"
-                                        "uniform float ks;\n"
-                                        "uniform vec3 LightPos;\n"
-                                        "uniform vec3 viewPos;\n"
-                                        "uniform vec3 LightColor;\n"
-                                        "uniform float specularParam;\n"
+                                        "in vec2 TexCoord;\n"
+                                        "in vec3 Normal;\n"
+                                        "in vec3 FragPos;  //片段位置\n"
+                                        "uniform sampler2D Texture1;  //材质纹理\n"
+                                        "uniform sampler2D Texture2;  //高光纹理\n"
+                                        "uniform float ka;  //环境光系数\n"
+                                        "uniform vec3 LightPos[LIGHT_POS];   //点光源位置\n"
+                                        "uniform vec3 viewPos;  //观察位置 或聚光灯位置\n"
+                                        "uniform vec3 LightColor;  //点光源颜色\n"
+                                        "uniform vec3 SpotColor;\n"
+                                        "uniform float cutOff;  //聚光灯内圆锥范围  单位弧度制\n"
+                                        "uniform vec3 spotDir;  //聚光灯朝向。即摄像机正面朝向。\n"
+                                        "uniform float specularParam;  //光泽度\n"
+                                        "uniform float outerCircle;  //聚光灯外圆锥角度。 弧度制\n"
+                                        "\n"
+                                        "//返回点光源着色结果\n"
+                                        "vec3 calcPointLight(vec3 LightPos){\n"
+                                        "    vec3 common_ambient = ka * LightColor;  //通用的环境光计算\n"
+                                        "    vec3 kd = vec3(texture(Texture1,TexCoord));\n"
+                                        "    vec3 norm = normalize(Normal);\n"
+                                        "    vec3 view_vec = normalize(viewPos-FragPos);  //相机观察向量。注意这里标准化后的\n"
+                                        "    vec3 dot_light_vec = vec3(LightPos-FragPos);\n"
+                                        "    float dot_ray_r = length(dot_light_vec);\n"
+                                        "    float dot_F = 1.0 / (1.0 + dot_ray_r * 0.22 + pow(dot_ray_r,2) * 0.2);\n"
+                                        "    dot_light_vec = normalize(dot_light_vec);    \n"
+                                        "    float dot_diff = max(0.0,dot(norm,dot_light_vec));\n"
+                                        "    vec3 dot_diffuse = dot_diff * LightColor;\n"
+                                        "    float dot_spec = pow(max(0.0,dot(view_vec,reflect(-dot_light_vec,norm))),specularParam);\n"
+                                        "    vec3 dot_specular = dot_spec * vec3(texture(Texture2,TexCoord)) * LightColor; \n"
+                                        "    vec3 Dot_Light_Color = (common_ambient + dot_diffuse * dot_F)* kd + dot_specular * dot_F;\n"
+                                        "    return Dot_Light_Color;\n"
+                                        "}\n"
+                                        "\n"
+                                        "//返回聚光灯着色结果\n"
+                                        "vec3 calcSpotLight(){\n"
+                                        "    vec3 kd = vec3(texture(Texture1,TexCoord));\n"
+                                        "    vec3 norm = normalize(Normal);\n"
+                                        "    vec3 spot_light_vec = vec3(viewPos-FragPos);  //聚光灯光线向量.\n"
+                                        "    vec3 view_vec = normalize(viewPos-FragPos);  //相机观察向量。注意这里标准化后的\n"
+                                        "    float spot_ray_r = length(spot_light_vec);\n"
+                                        "    float spot_F = 1.0 / (1.0 + spot_ray_r * 0.045 + pow(spot_ray_r,2) * 0.0075);\n"
+                                        "    spot_light_vec = normalize(spot_light_vec);\n"
+                                        "    float spot_diff =  max(0.0,dot(norm,spot_light_vec));\n"
+                                        "    vec3 spot_diffuse = spot_diff * SpotColor;\n"
+                                        "    float spot_spec = pow(max(0.0,dot(view_vec,reflect(-spot_light_vec,norm))),specularParam);\n"
+                                        "    vec3 spot_specular = spot_spec * vec3(texture(Texture2,TexCoord)) * SpotColor;\n"
+                                        "    vec3 Spot_Light_Color = spot_specular * spot_F + spot_diffuse* kd * spot_F ; \n"
+                                        "    return Spot_Light_Color;\n"
+                                        "}\n"
+                                        "\n"
+                                        "\n"
                                         "void main(){\n"
-                                        "vec4 kd = texture(Texture1,TexCoord);\n"
-                                        "vec3 norm = normalize(Normal);\n"
-                                        "vec3 light_vector = vec3(LightPos-FragPos);\n"
-                                        "vec3 view_vector = normalize(viewPos-FragPos);\n"
-                                        "float r = length(light_vector);"
-                                        "light_vector = normalize(light_vector);\n"
-                                        "vec3 ambient = ka * LightColor;\n"
-                                        "float diff = max(0.0,dot(norm,light_vector));\n"
-                                        "vec3 diffuse = diff * LightColor;\n"
-                                        "float spec = pow(max(0.0,dot(view_vector,reflect(-light_vector,norm))),specularParam);\n"
-                                        "vec3 specular = spec * ks * LightColor; \n"
-                                        "FragColor = vec4(specular,1.0) + vec4(ambient + diffuse,1.0) * kd;\n"
+                                        "    float theta = dot(normalize(FragPos-viewPos),normalize(spotDir));\n"
+                                        "    //光线与聚光灯方向夹角。由此判断片段是否在聚光灯可照范围内。\n"
+                                        "    //在内圆锥内，最终颜色为 聚光灯光线造成的高光、漫反射 + 环境光。\n"
+                                        "    //如果在外圆锥到内圆锥区间内，插值计算得 inCircle，最终颜色为 聚光灯光线 * inCircle + 点光源的光线\n"
+                                        "    //外圆锥之外的范围，最终颜色为 点光源光线计算后的颜色。     \n"
+                                        "    float inCircle = (theta-outerCircle)/(cutOff-outerCircle);\n"
+                                        "    vec3 result;\n"
+                                        "    vec3 SpotLight = calcSpotLight();\n"
+                                        "    //循环遍历点光源数组，计算对于这个片段的最终颜色。根据theta角度判断是否要计算聚光灯颜色。\n"
+                                        "    for(int i = 0;i<LIGHT_POS;i++)\n"
+                                        "    {\n"
+                                        "        result += calcPointLight(LightPos[i]);\n"
+                                        "    }\n"
+                                        "\n"
+                                        "    if(theta>=cutOff)\n"
+                                        "    {\n"
+                                        "        FragColor = vec4(result + SpotLight,1.0); //加上聚光灯。\n"
+                                        "    }\n"
+                                        "    else if(theta >= outerCircle)\n"
+                                        "    {\n"
+                                        "        //在内圆锥和外圆锥中间。 聚光灯部分光线 + 点光源\n"
+                                        "        FragColor = vec4(SpotLight * inCircle + result,1.0);\n"
+                                        "    }\n"
+                                        "    else\n"
+                                        "    {\n"
+                                        "        FragColor = vec4(result,1.0);\n"
+                                        "    }\n"
+                                        "\n"
                                         "}";
 
 
@@ -332,19 +389,19 @@ FragColor = vec4(0.5,0.2,0.3,1.0);
      * */
 
     //光源位置
-    glm::vec4 LightingPos = {0.f,0.f,0.f,1.0f};  //局部坐标系的位置
+    glm::vec4 LightingPos = {1.0f,0.0f,1.0f,1.0f};  //局部坐标系的位置
     glm::mat4 LightingModel(1.0f);
     //光照强度
-    glm::vec3 LightingStrength = {1.0f,1.0f,1.0f};  //LightColor
+    glm::vec3 LightingStrength = {0.0f,1.0f,0.0f};  //LightColor
     //发光源物体的顶点设置
     unsigned int LightVAO;  //VBO顶点数据使用前面的
     glGenVertexArrays(1,&LightVAO);
     glBindVertexArray(LightVAO);
     glBindBuffer(GL_ARRAY_BUFFER,VBO);
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,5*sizeof(float), nullptr);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)0);
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER,0);
     glBindVertexArray(0);
+
     //光源的颜色固定,顶点位置从VBO获取。
     const char * LightingVertexShader = "#version 460 core\n"
                                         "layout(location=0)in vec3 aPos;\n"
@@ -352,7 +409,7 @@ FragColor = vec4(0.5,0.2,0.3,1.0);
                                         "uniform mat4 view;\n"
                                         "uniform mat4 model;\n"
                                         "void main(){\n"
-                                        "gl_Position= projection * view * model * vec4(aPos.xyz,1.0f);\n"
+                                        "gl_Position = projection * view * model * vec4(aPos.xyz,1.0f);\n"
                                         "}";
 
     const char * LightingFragmentShader = "#version 460 core\n"
@@ -361,10 +418,50 @@ FragColor = vec4(0.5,0.2,0.3,1.0);
                                           "FragColor = vec4(1.0f,1.0f,1.0f,1.0f);\n"
                                           "}";
 
+    //发光物体 着色器编译
+    unsigned int light_vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(light_vertexShader,1,&LightingVertexShader, nullptr);
+    glCompileShader(light_vertexShader);
+    //shader是否编译成功检查
+    glGetShaderiv(light_vertexShader,GL_COMPILE_STATUS,&success);
+    if(!success){
+        printf("Compile fail in vertexShader !\n");
+        exit(0);
+    }
+
+    unsigned int light_fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(light_fragShader,1,&LightingFragmentShader, nullptr);
+    glCompileShader(light_fragShader);
+    //shader是否编译成功检查
+    glGetShaderiv(light_fragShader,GL_COMPILE_STATUS,&success);
+    if(!success){
+        printf("Compile fail in FragmentShader !\n");
+        exit(0);
+    }
+    //光源物体 着色器程序 链接
+    unsigned int light_ShaderProgram;
+
+    glAttachShader(light_ShaderProgram,light_vertexShader);
+    glAttachShader(light_ShaderProgram,light_fragShader);
+    glLinkProgram(light_ShaderProgram);
+
+    glDeleteShader(light_vertexShader);
+    glDeleteShader(light_fragShader);
+    glad_glGetProgramiv(light_ShaderProgram,GL_LINK_STATUS,&success);
+    if(!success){
+        printf("LINK Fail!\n");
+        exit(0);
+    }
+
+    glm::vec3 Light_Pos[] = {
+            glm::vec3(LightingPos),
+            glm::vec3(-2.0f,1.0f,1.0f),
+            glm::vec3(3.0f,1.5f,-4.0f),
+            glm::vec3(-2.0f,2.0f,-8.0f)
+    };
 
     //模型变换、视图变换、投影变换矩阵并传递到顶点着色器
     glm::mat4 model(1.0f),projection(1.0f),view(1.0f);
-    //view = glm::lookAt(glm::vec3(0.0f,0.0f,3.0f),glm::vec3(.0f,.0f,.0f),glm::vec3(.0f,1.f,.0f));
 
     //传递纹理单元到uniform类型的采样器变量中
     glUseProgram(shaderProgram);
@@ -375,46 +472,73 @@ FragColor = vec4(0.5,0.2,0.3,1.0);
     //传递这些参数ka ks 系数。 float类型
     //LightPos 光源位置  viewPos LightColor 光源颜色 均为vec3类型
     //specularParam  反光强度。即p。 float类型
-    glUniform1f(glGetUniformLocation(shaderProgram,"ka"),0.20f);
-    glUniform1f(glGetUniformLocation(shaderProgram,"ks"),0.85f);
-
+    glUniform1f(glGetUniformLocation(shaderProgram,"ka"),0.03f);
 
     glUniform1f(glGetUniformLocation(shaderProgram,"specularParam"),128.0f);
-
+    glUniform3fv(glGetUniformLocation(shaderProgram,"LightColor"),1,glm::value_ptr(glm::vec3(0.f,1.f,0.f)));
+    glUniform3fv(glGetUniformLocation(shaderProgram,"SpotColor"),1,glm::value_ptr(glm::vec3(1.f,1.f,1.f)));
+    glUniform3fv(glGetUniformLocation(shaderProgram,"spotDir"),1,glm::value_ptr(CamFront));
+    glUniform1f(glGetUniformLocation(shaderProgram,"cutOff"),std::cos(glm::radians(15.f)));
+    glUniform1f(glGetUniformLocation(shaderProgram,"outerCircle"),std::cos(glm::radians(25.f)));
     //开启深度测试
     glEnable(GL_DEPTH_TEST);
 
     while(!glfwWindowShouldClose(window))
     {
         processInput(window);
-        glUniform1f(glGetUniformLocation(shaderProgram,"alpha"),initAlpha);
-        glClearColor(0.2,0.3,0.3,1.0f);  //状态设置
+        glClearColor(0.5f,0.5f,0.5f,1.f);  //状态设置
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  //清空颜色缓冲位。 状态使用函数
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D,texID);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D,wall_surf_tex);
+        //变换矩阵更新。
+        view = glm::lookAt(CamPos,CamPos + CamFront,CamUp);
+        projection = glm::perspective(glm::radians(fov),128.0f/72.0f,1.f,100.0f);
+        //绘制光源物体。着色器为light_ShaderProgram
+        /*glUseProgram(light_ShaderProgram);
+
+        glUniformMatrix4fv(glGetUniformLocation(light_ShaderProgram,"view"),1,GL_FALSE,glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(light_ShaderProgram,"projection"),1,GL_FALSE,glm::value_ptr(projection));
+        glUniformMatrix4fv(glGetUniformLocation(light_ShaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(glm::vec3(1.0f)));
+        glBindVertexArray(LightVAO);
+        for(int i = 0;i<4;i++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, Light_Pos[i]);
+            model = glm::scale(model,glm::vec3(0.5f));
+            glUniformMatrix4fv(glGetUniformLocation(light_ShaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }*/
         glUseProgram(shaderProgram);
 
         glBindVertexArray(VAO);
 
-        view = glm::lookAt(CamPos,CamPos + CamFront,CamUp);
-        projection = glm::perspective(glm::radians(fov),4.0f/3.0f,0.1f,100.0f);
+
         //光源位置随时间变化。
-        float posx = 15 * std::sin(glfwGetTime());
-        float posz = 15 * std::cos(glfwGetTime());
-        LightingModel = glm::translate(LightingModel,glm::vec3(posx,2.0f,posz));
+        //float posx = 8 * std::sin(glfwGetTime());
+        //float posz = 8 * std::cos(glfwGetTime());
+
         //颜色随时间变化
-        float r = (1 + std::sin(glfwGetTime() * 0.5f))/2;
-        float g = (1 + std::sin(glfwGetTime() * 0.8f))/2;
-        float b = (1 + std::sin(glfwGetTime() * 0.2f))/2;
-        glUniform3fv(glGetUniformLocation(shaderProgram,"LightColor"),1,glm::value_ptr(glm::vec3(r,g,b)));
-        glUniform3fv(glGetUniformLocation(shaderProgram,"LightPos"),1,glm::value_ptr(glm::vec3(LightingModel * LightingPos)));
+        //float r = (1 + std::sin(glfwGetTime() * 0.5f))/2;
+        //float g = (1 + std::sin(glfwGetTime() * 0.8f))/2;
+        //float b = (1 + std::sin(glfwGetTime() * 0.2f))/2;
+        //glUniform3fv(glGetUniformLocation(shaderProgram,"LightColor"),1,glm::value_ptr(glm::vec3(r,g,b)));
+        //glUniform3fv(glGetUniformLocation(shaderProgram,"LightPos"),1,glm::value_ptr(glm::vec3(LightingModel * LightingPos)));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram,"view"),1,GL_FALSE,glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram,"projection"),1,GL_FALSE,glm::value_ptr(projection));
         glUniform3fv(glGetUniformLocation(shaderProgram,"viewPos"),1,glm::value_ptr(CamPos));  //更新观察者位置（相机位置）
+        glUniform3fv(glGetUniformLocation(shaderProgram,"spotDir"),1,glm::value_ptr(CamFront));
 
+        //传递所有的点光源位置给fragmentShader中的LightPos数组。
+        glUniform3fv(glGetUniformLocation(shaderProgram,"LightPos[0]"),1,glm::value_ptr(Light_Pos[0]));
+        glUniform3fv(glGetUniformLocation(shaderProgram,"LightPos[1]"),1,glm::value_ptr(Light_Pos[1]));
+        glUniform3fv(glGetUniformLocation(shaderProgram,"LightPos[2]"),1,glm::value_ptr(Light_Pos[2]));
+        glUniform3fv(glGetUniformLocation(shaderProgram,"LightPos[3]"),1,glm::value_ptr(Light_Pos[3]));
+
+        //绘制所有盒子
         for(unsigned int i = 0;i<10;i++)
         {
             model = glm::mat4(1.0f);
@@ -424,6 +548,7 @@ FragColor = vec4(0.5,0.2,0.3,1.0);
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram,"model"),1,GL_FALSE,glm::value_ptr(model));
             glDrawArrays(GL_TRIANGLES,0,36);
         }
+        glBindVertexArray(0);
 
         glfwSwapBuffers(window);  //交换颜色缓冲。opengl使用双缓冲，前缓冲保存显示的图像缓冲，后缓冲区储存渲染指令正在绘制的。渲染指令
         //执行完毕后缓冲区交换。
