@@ -1,0 +1,1 @@
++ 依赖的库：OPENGL、FreeType、RandR
