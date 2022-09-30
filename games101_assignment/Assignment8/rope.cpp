@@ -42,10 +42,8 @@ namespace CGL {
             l->forces += s->k * ((r->position - l->position).norm() - s->rest_length) * (r->position - l->position).unit();
             r->forces += s->k * ((l->position - r->position).norm() - s->rest_length) * (l->position - r->position).unit();
             // TODO (Part 2): 增加阻尼
-            l->forces += 0.01 * (l->position - r->position).unit() * (l->velocity - r->velocity) * (l->position - r->position).unit();
-            r->forces += 0.01 * (r->position - l->position).unit() * (r->velocity - l->velocity) * (r->position - l->position).unit();
-            //l->forces += -0.00005 * l->velocity; 
-            //r->forces += -0.00005 * r->velocity; 
+            l->forces += 0.1 * (l->position - r->position).unit() * (l->velocity - r->velocity) * (l->position - r->position).unit();
+            r->forces += 0.1 * (r->position - l->position).unit() * (r->velocity - l->velocity) * (r->position - l->position).unit();
         }
 
         Vector2D a;
@@ -88,7 +86,7 @@ namespace CGL {
                 G = m->mass *  gravity;
                 a = (m->forces + G) / m->mass;
                 m->velocity = m->velocity + a * delta_t;
-                m->position = m->position + (1 - 0.00005) * (m->position - m->last_position) +  a * delta_t * delta_t;
+                m->position = m->position + (1 - 0.0001) * (m->position - m->last_position) +  a * delta_t * delta_t;
                 m->last_position = temp_position;
             }
             m->forces = Vector2D(0, 0);
