@@ -1,0 +1,20 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/bunny_export.obj-55fd1566e0b1a0101f01985053a9069f.mesh"
+
+[deps]
+
+files=[ "res://.import/bunny_export.obj-55fd1566e0b1a0101f01985053a9069f.mesh" ]
+
+source_file="res://assets/Material/Verde Guatemala Marble Tiles_wgildgjv/bunny_export.obj"
+dest_files=[ "res://.import/bunny_export.obj-55fd1566e0b1a0101f01985053a9069f.mesh", "res://.import/bunny_export.obj-55fd1566e0b1a0101f01985053a9069f.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+octahedral_compression=true
+optimize_mesh_flags=4286
