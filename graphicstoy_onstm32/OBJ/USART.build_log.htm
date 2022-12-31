@@ -1,0 +1,132 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: ¦ÌVision V5.14.2.1
+Copyright (C) 2015 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: Cortex-M4, bb, LIC=CZLZX-HG51J-122LE-5AWJI-6CJLG-WFJ7S
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Standard  Version: 5.36.0.0
+Toolchain Path:  D:\Keil5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 7 (build 960)
+Assembler:       Armasm.exe V5.06 update 7 (build 960)
+Linker/Locator:  ArmLink.exe V5.06 update 7 (build 960)
+Library Manager: ArmAr.exe V5.06 update 7 (build 960)
+Hex Converter:   FromElf.exe V5.06 update 7 (build 960)
+CPU DLL:         SARMCM3.DLL V5.36.0.0
+Dialog DLL:      DCM.DLL V1.17.3.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.9.0
+Dialog DLL:      TCM.DLL V1.53.0.0
+ 
+<h2>Project:</h2>
+D:\Study\Program\C\c_stm32\LCD&ILI9341\USER\USART.uvprojx
+Project File Date:  12/30/2022
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 7 (build 960)', folder: 'D:\Keil5\ARM\ARMCC\Bin'
+Build target 'USART'
+compiling main.c...
+lcd.h(39): warning:  #1295-D: Deprecated declaration LCD_Config - give arg types
+  void LCD_Config();
+lcd.h(40): warning:  #1295-D: Deprecated declaration LCD_Reg_Config - give arg types
+  void LCD_Reg_Config();
+rng.h(6): warning:  #1295-D: Deprecated declaration RNG_Init - give arg types
+  void RNG_Init();
+myMath.h(76): warning:  #1-D: last line of file ends without a newline
+  #endif
+rtc.h(7): warning:  #1295-D: Deprecated declaration Counter_Init - give arg types
+  void Counter_Init();
+bunny.h(9): warning:  #1-D: last line of file ends without a newline
+  #endif
+main.c(22): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+        return a * a * a - (pp.x + 0.1125* pp.y) * ppp.z;
+main.c(34): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          y = (a + b) * 0.5;
+main.c(47): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          -2.0 * v.x * vvv.z +  6.0 * v.x * a,
+main.c(48): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+        -0.225 * v.y * vvv.z + 13.5 * v.y * a,
+main.c(49): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+        v.z * (-3.0 * vv.x * v.z - 0.3375 * vv.y * v.z + 6.0 * a)));
+main.c(49): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+        v.z * (-3.0 * vv.x * v.z - 0.3375 * vv.y * v.z + 6.0 * a)));
+main.c(63): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+      float s = sin(t * 3.0);
+main.c(66): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+      s *= 0.1;
+main.c(67): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+      vec3 tp = VEC3(1.0 + s, 1.0 - s, 0.0);
+main.c(67): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+      vec3 tp = VEC3(1.0 + s, 1.0 - s, 0.0);
+main.c(71): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+      if (heart(VEC3(tp.x,tp.z,tp.y)) <= 0.0) {
+main.c(73): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          float diffuse = dot(n, normalize(VEC3(-1.0, 1.0, 1.0))) * 0.5 + 0.5;
+main.c(76): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+                                float rim = 1.0 - dot(n, VEC3(0.0, 1.0, 0.0));
+main.c(79): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+                                c.x = (c.x > 1.0f) ? 1.0 : c.x;
+main.c(80): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+                                c.y = (c.y > 1.0f) ? 1.0 : c.y;
+main.c(81): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+                                c.z = (c.z > 1.0f) ? 1.0 : c.z;
+main.c(84): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          c = vec3multi(VEC3(1.0, 0.8, 0.7 - 0.07 * p.y) , (1.0 - 0.15 * length(p)));
+main.c(84): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          c = vec3multi(VEC3(1.0, 0.8, 0.7 - 0.07 * p.y) , (1.0 - 0.15 * length(p)));
+main.c(103): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+     p3 = vec3add(p3,dot(p3, VEC3(p3.y+ 19.19, p3.z+19.19, p3.x + 19.19)));
+main.c(103): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+     p3 = vec3add(p3,dot(p3, VEC3(p3.y+ 19.19, p3.z+19.19, p3.x + 19.19)));
+main.c(103): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+     p3 = vec3add(p3,dot(p3, VEC3(p3.y+ 19.19, p3.z+19.19, p3.x + 19.19)));
+main.c(115): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+      float t = fmod(iTime + 10.0 ,7200.0);
+main.c(119): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+      for (float j = 0.; j < EXPLOSION_COUNT; ++j)
+main.c(121): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          vec3 oh = hash31((j + 1234.1939) * 641.6974);
+main.c(125): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          t += (j + 1.) * 9.6491 * oh.z;
+main.c(126): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          for (float i = 0.; i < SPARKS_PER_EXPLOSION; ++i)
+main.c(129): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+              vec3 h = hash31(j * 963.31 + i + 497.8943);
+main.c(131): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+              float a = h.x * PI * 2.;
+main.c(133): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+              float rScale = h.y * EXPLOSION_RADIUS_THESHOLD;
+main.c(135): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+              if (fmod(t * EXPLOSION_SPEED, EXPLOSION_DURATION) > 2.)
+main.c(138): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+                  float r = fmod(t * EXPLOSION_SPEED, EXPLOSION_DURATION) * rScale;
+main.c(151): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+                  float sd = 2. * lengthv2(tempv2);
+main.c(152): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+                  float shimmer = max(0., sqrt(sd) * (sin((t + h.y * 2. * PI) * 20.)));
+main.c(158): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+                                        (shimmerThreshold + 1.) * rScale , r) ) * fade ));
+main.c(165): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+      col = vec3addv(col,vec3multi(VEC3(.12, .06, .02) , (1.- uv.v)));
+main.c(166): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+                col.x = (col.x > 1.0f) ? 1.0 : col.x;
+main.c(167): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+                col.y = (col.y > 1.0f) ? 1.0 : col.y;
+main.c(168): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+                col.z = (col.z > 1.0f) ? 1.0 : col.z;
+main.c: 44 warnings, 0 errors
+linking...
+Program Size: Code=31394 RO-data=918 RW-data=36 ZI-data=97836  
+FromELF: creating hex file...
+"..\OBJ\USART.axf" - 0 Error(s), 44 Warning(s).
+
+<h2>Collection of Component include folders:</h2>
+  D:\Study\Program\C\c_stm32\LCD&ILI9341\USER\RTE
+  D:\Keil5\ARM\PACK\Keil\STM32F4xx_DFP\2.16.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include
+
+<h2>Collection of Component Files used:</h2>
+</pre>
+</body>
+</html>
