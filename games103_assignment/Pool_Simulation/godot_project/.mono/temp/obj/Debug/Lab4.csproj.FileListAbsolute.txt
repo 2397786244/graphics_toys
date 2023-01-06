@@ -1,0 +1,9 @@
+/home/pc/Develop/Godot_Projects/Lab4/.mono/temp/bin/Debug/Lab4.dll
+/home/pc/Develop/Godot_Projects/Lab4/.mono/temp/bin/Debug/Lab4.pdb
+/home/pc/Develop/Godot_Projects/Lab4/.mono/temp/obj/Debug/Lab4.csproj.AssemblyReference.cache
+/home/pc/Develop/Godot_Projects/Lab4/.mono/temp/obj/Debug/Lab4.GeneratedMSBuildEditorConfig.editorconfig
+/home/pc/Develop/Godot_Projects/Lab4/.mono/temp/obj/Debug/Lab4.AssemblyInfoInputs.cache
+/home/pc/Develop/Godot_Projects/Lab4/.mono/temp/obj/Debug/Lab4.AssemblyInfo.cs
+/home/pc/Develop/Godot_Projects/Lab4/.mono/temp/obj/Debug/Lab4.csproj.CoreCompileInputs.cache
+/home/pc/Develop/Godot_Projects/Lab4/.mono/temp/obj/Debug/Lab4.dll
+/home/pc/Develop/Godot_Projects/Lab4/.mono/temp/obj/Debug/Lab4.pdb
