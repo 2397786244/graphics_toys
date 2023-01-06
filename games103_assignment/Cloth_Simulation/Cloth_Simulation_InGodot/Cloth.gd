@@ -69,9 +69,10 @@ func _ready():
 func Collision_Detect(XA:Array):
 	var Sphere:Sphere_Obj = get_node(@"../sphere");  # 获取Spatial下面的兄弟节点。
 	var Sphere_Pos = Sphere.transform.origin;
-	var _mesh = self.mesh;
+	var _m = ArrayMesh.new();
+	_m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,self.mesh.surface_get_arrays(0));
 	var MDT = MeshDataTool.new();
-	MDT.create_from_surface(_mesh,0);
+	MDT.create_from_surface(_m,0);
 	for j in range(MDT.get_vertex_count()):
 		MDT.set_vertex(j,XA[j]);
 	for i in range(XA.size()):
@@ -85,8 +86,9 @@ func Collision_Detect(XA:Array):
 			V[i] = V[i] + 1.0 / t * (Sphere_Pos + r * (XA[i] - Sphere_Pos) / (XA[i] - Sphere_Pos).length() - XA[i]);
 			XA[i] = Sphere_Pos + r * (XA[i] - Sphere_Pos) / (XA[i] - Sphere_Pos).length();
 			MDT.set_vertex(i,XA[i]);
-	self.mesh.surface_remove(0);
-	MDT.commit_to_surface(_mesh);
+	_m.surface_remove(0);
+	MDT.commit_to_surface(_m);
+	self.mesh = _m;
 # 梯度计算
 func get_Gradient(X:Array,X_hat:Array,t:float,G:Array):
 	var j :int;
@@ -106,9 +108,11 @@ func _process(delta):
 		#首先获取顶点位置
 		var X:Array;
 		X.resize(Vertices_List.size());
-		var _mesh = self.mesh;
+		var _m = ArrayMesh.new();
+		_m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,self.mesh.surface_get_arrays(0));
+		
 		var MDT1 = MeshDataTool.new();
-		MDT1.create_from_surface(_mesh,0);
+		MDT1.create_from_surface(_m,0);
 		for i in range(MDT1.get_vertex_count()):
 			X[i] = MDT1.get_vertex(i);
 			
@@ -139,16 +143,36 @@ func _process(delta):
 			V[i] = V[i] + (X[i] - X_hat[i]) / t;	
 		# update: X
 		var MDT = MeshDataTool.new();
-		MDT.create_from_surface(_mesh,0);
+		MDT.create_from_surface(_m,0);
 		for i in range(MDT.get_vertex_count()):
 			MDT.set_vertex(i,X[i]);
-		self.mesh.surface_remove(0);
-		MDT.commit_to_surface(_mesh);
-	
+		_m.surface_remove(0);
+		MDT.commit_to_surface(_m);
+		self.mesh=_m;
+		
 		Collision_Detect(X);
 		
-		# TODO : 重新计算法线。
-			
+		# recalc normals
+		_m = ArrayMesh.new();
+		_m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,self.mesh.surface_get_arrays(0));
+		var mdt = MeshDataTool.new();
+		mdt.create_from_surface(_m,0);
+		
+		for i in range(mdt.get_face_count()):
+			var a = mdt.get_face_vertex(i,0);
+			var b = mdt.get_face_vertex(i,1);
+			var c = mdt.get_face_vertex(i,2);
+			var ap = mdt.get_vertex(a);
+			var bp = mdt.get_vertex(b);
+			var cp = mdt.get_vertex(c);
+				
+			var n = (bp - cp).cross(ap - cp).normalized();
+			mdt.set_vertex_normal(a, (n + mdt.get_vertex_normal(a)).normalized());
+			mdt.set_vertex_normal(b, (n + mdt.get_vertex_normal(b)).normalized());
+			mdt.set_vertex_normal(c, (n + mdt.get_vertex_normal(c)).normalized());
+		_m.surface_remove(0);
+		mdt.commit_to_surface(_m);	
+		self.mesh = _m;	
 func quick_sort(_E:Array,l:int,r:int):
 	var j:int;
 	if(l < r):
@@ -187,7 +211,4 @@ func quick_sort_partition(E:Array,l:int,r:int)->int:
 	E[2 * l + 1] = E[2 * j + 1];
 	E[2 * j + 1] = temp;
 	return j;	
-	
-# 网格法线重新计算。
-func ReCalcNormals():
-	pass
+
